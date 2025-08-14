@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 	"user-service/config"
+	"user-service/constants"
+	errConstant "user-service/constants/error"
 	"user-service/domain/dto"
 	"user-service/repositories"
 
@@ -103,4 +105,49 @@ func (u *UserService) isEmailExist(ctx context.Context, email string) bool {
 	}
 
 	return false
+}
+
+func (u *UserService) Register(ctx context.Context, req *dto.RegisterRequest) (*dto.RegisterResponse, error) {
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if u.isUsernameExist(ctx, req.Username) {
+		return nil, errConstant.ErrUsernameExist
+	}
+
+	if u.isEmailExist(ctx, req.Email) {
+		return nil, errConstant.ErrEmailExist
+	}
+
+	if req.Password != req.ConfirmPassword {
+		return nil, errConstant.ErrPasswordDoesNotMatch
+	}
+
+	user, err := u.repository.GetUser().Register(ctx, &dto.RegisterRequest{
+		Name: req.Name,
+		Username: req.Username,
+		Password: string(hashedPassword),
+		Email: req.Email,
+		PhoneNumber: req.PhoneNumber,
+		RoleID: constants.Customer,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	response := &dto.RegisterResponse{
+		User: dto.UserResponse{
+			UUID: user.UUID,
+			Name: user.Name,
+			Username: user.Username,
+			PhoneNumber: user.PhoneNumber,
+			Email: user.Email,
+		},
+	}
+
+	return response, nil
 }
