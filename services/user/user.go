@@ -78,3 +78,29 @@ func (u *UserService) Login(ctx context.Context, req *dto.LoginRequest) (*dto.Lo
 
 	return response, nil
 }
+
+func (u *UserService) isUsernameExist(ctx context.Context, username string) bool {
+	user, err := u.repository.GetUser().FindByUsername(ctx, username)
+	if err != nil {
+		return false
+	}
+	
+	if user != nil {
+		return true
+	}
+
+	return false
+}
+
+func (u *UserService) isEmailExist(ctx context.Context, email string) bool {
+	user, err := u.repository.GetUser().FindByEmail(ctx, email)
+	if err != nil {
+		return false
+	}
+	
+	if user != nil {
+		return true
+	}
+
+	return false
+}
