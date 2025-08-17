@@ -4,6 +4,8 @@ import (
 	"os"
 	"user-service/common/util"
 
+	_ "github.com/spf13/viper/remote" // mengambil data dari server ketika sudah deploy ke cloud
+
 	"github.com/sirupsen/logrus"
 )
 
